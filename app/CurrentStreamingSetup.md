@@ -4,7 +4,7 @@
 
 ## Project Overview
 
-**Telegram-Drive** (`/Users/cameronamer/Documents/TelegramicBackUP_01/app`) is a Tauri v2 (Rust backend + React/TypeScript frontend) desktop app that turns a Telegram account into a cloud storage drive. It streams video files directly from Telegram's servers through a local proxy server to an HTML5 player.
+**Telegram-Drive** (`/Users/ranjanbarman1/codes/Telegram-Drive-main/app`) is a Tauri v2 (Rust backend + React/TypeScript frontend) desktop app that turns a Telegram account into a cloud storage drive. It streams video files directly from Telegram's servers through a local proxy server to an HTML5 player.
 
 ### Tech Stack
 - **Backend:** Rust (Tauri v2, Actix-web 4, tokio, grammers-client git rev `d07f96f`, mp4parse 0.17)

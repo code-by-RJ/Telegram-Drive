@@ -2,7 +2,7 @@
 name = "app"
 version = "1.8.8"
 description = "Turn your Telegram account into an unlimited, secure cloud storage drive. an Open-source desktop app built with Tauri, Rust, and React."
-authors = ["Cameron Amer"]
+authors = ["RJ"]
 edition = "2021"
 
 
@@ -58,6 +58,7 @@ mp4parse = "0.17"
 urlencoding = "2"
 reqwest = { version = "0.12", features = ["stream", "rustls-tls", "socks"] }
 sysinfo = "0.30"
+openssl = { version = "0.10", features = ["vendored"] }
 
 [target.'cfg(target_os = "android")'.dependencies]
 jni = "0.21"
@@ -67,4 +68,5 @@ ndk-context = "0.1.1"
 # Embed the WebView2 bootstrapper so the app works on Windows systems
 # where the WebView2 runtime is not pre-installed (fresh installs, servers, etc.)
 webview-install-mode = "embeddir"
+
 

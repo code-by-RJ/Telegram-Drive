@@ -6,7 +6,6 @@ dist/
 
 # Rust
 /app/src-tauri/target/
-/app/src-tauri/gen/
 **/*.rs.bk
 
 # Editors
@@ -22,7 +21,6 @@ Error.html
 
 # Android local builds
 /android/
-/app/src-tauri/gen/android/
 *.apk
 *.aab
 .gradle/
@@ -36,5 +34,11 @@ local.properties
 /app/src-tauri/tests/android_uri_cache_tests.rs
 /app/src-tauri/gen/schemas/android-schema.json
 /app/src-tauri/icons/android/
+
+# Ignore most of gen/android but keep our custom files
+/app/src-tauri/gen/android/.gradle/
+/app/src-tauri/gen/android/app/build/
+/app/src-tauri/gen/android/buildSrc/build/
+/app/src-tauri/gen/android/buildSrc/.gradle/
 
 tauri-signing-key.key.pub

@@ -12,6 +12,10 @@ import java.io.FileOutputStream
 import java.lang.ref.WeakReference
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicInteger
+import android.os.Build
+import android.content.ContentValues
+import android.provider.MediaStore
+import android.os.Environment
 
 class MainActivity : TauriActivity() {
 
@@ -106,6 +110,44 @@ class MainActivity : TauriActivity() {
             } catch (e: Exception) {
                 Log.e("MainActivity", "getLocalFileFromUri error: ${e.message}", e)
                 ""
+            }
+        }
+
+        @JvmStatic
+        fun saveFileToPublicDownloads(sourcePath: String, fileName: String, mimeType: String): Boolean {
+            return try {
+                val activity = instance?.get() ?: return false
+                val sourceFile = File(sourcePath)
+                if (!sourceFile.exists()) return false
+
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    val contentValues = android.content.ContentValues().apply {
+                        put(android.provider.MediaStore.Downloads.DISPLAY_NAME, fileName)
+                        put(android.provider.MediaStore.Downloads.MIME_TYPE, mimeType)
+                        put(android.provider.MediaStore.Downloads.IS_PENDING, 1)
+                    }
+                    val resolver = activity.contentResolver
+                    val uri = resolver.insert(android.provider.MediaStore.Downloads.EXTERNAL_CONTENT_URI, contentValues)
+                    uri?.let {
+                        resolver.openOutputStream(it)?.use { output ->
+                            sourceFile.inputStream().use { input -> input.copyTo(output) }
+                        }
+                        contentValues.clear()
+                        contentValues.put(android.provider.MediaStore.Downloads.IS_PENDING, 0)
+                        resolver.update(it, contentValues, null, null)
+                    }
+                } else {
+                    val downloadsDir = android.os.Environment.getExternalStoragePublicDirectory(
+                        android.os.Environment.DIRECTORY_DOWNLOADS
+                    )
+                    downloadsDir.mkdirs()
+                    val destFile = File(downloadsDir, fileName)
+                    sourceFile.copyTo(destFile, overwrite = true)
+                }
+                true
+            } catch (e: Exception) {
+                Log.e("MainActivity", "saveFileToPublicDownloads error: ${e.message}", e)
+                false
             }
         }
 

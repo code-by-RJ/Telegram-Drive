@@ -7,6 +7,7 @@
 -keep class com.rj.telegramdrive.MainActivity {
     public static *;
 }
+
 -keep class com.rj.telegramdrive.UploadForegroundService {
     *;
 }

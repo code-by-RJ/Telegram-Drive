@@ -11,6 +11,8 @@ import { TouchFileList } from './TouchFileList';
 import { ThemeToggle } from '../shared/ThemeToggle';
 import { ActionPopover, ActionItem } from './ActionPopover';
 import { ShareDialog } from '../desktop/dashboard/ShareDialog';
+import { UploadQueue } from '../desktop/dashboard/UploadQueue';
+import { DownloadQueue } from '../desktop/dashboard/DownloadQueue';
 import { RenameFolderSheet } from './RenameFolderSheet';
 import { usePlatform } from '../../hooks/usePlatform';
 import { useTelegramConnection } from '../../hooks/useTelegramConnection';
@@ -119,8 +121,15 @@ export default function MobileDashboard({ onLogout }: { onLogout?: () => void })
     handleFolderRename, handleFolderToggleVisibility, handleExportFolderInvite
   } = useTelegramConnection(logoutHandler);
 
-  const { handleManualUpload } = useFileUpload(activeFolderId, store);
-  const { queueDownload, queueBulkDownload } = useFileDownload(store);
+  const {
+    uploadQueue, setUploadQueue, handleManualUpload,
+    cancelAll: cancelUploads, cancelItem: cancelUploadItem, retryItem: retryUploadItem,
+  } = useFileUpload(activeFolderId, store);
+  const {
+    downloadQueue, queueDownload, queueBulkDownload,
+    clearFinished: clearDownloads, cancelAll: cancelDownloads,
+    cancelItem: cancelDownloadItem, retryItem: retryDownloadItem,
+  } = useFileDownload(store);
 
   const [playingFile, setPlayingFile] = useState<TelegramFile | null>(null);
   const [pdfFile, setPdfFile] = useState<TelegramFile | null>(null);
@@ -500,14 +509,37 @@ export default function MobileDashboard({ onLogout }: { onLogout?: () => void })
         )}
 
         {activeTab === 'downloads' && (
-          <div className="flex flex-col items-center justify-center h-[60vh] space-y-3 text-center px-6">
-            <div className="p-4 rounded-full bg-telegram-primary/10 text-telegram-primary border border-telegram-primary/20">
-              <Download className="w-8 h-8 animate-bounce" />
-            </div>
-            <h3 className="text-base font-bold">Transfers Queue</h3>
-            <p className="text-xs text-telegram-subtext max-w-xs leading-relaxed">
-              Downloads and uploads are safely queued and managed in the background.
-            </p>
+          <div className="space-y-3">
+            {(uploadQueue.length > 0 || downloadQueue.length > 0) ? (
+              <>
+                <UploadQueue
+                  items={uploadQueue}
+                  positionClassName="relative w-full"
+                  onClearFinished={() => setUploadQueue(q => q.filter(i => i.status !== 'success' && i.status !== 'error' && i.status !== 'cancelled'))}
+                  onCancelAll={cancelUploads}
+                  onCancelItem={cancelUploadItem}
+                  onRetryItem={retryUploadItem}
+                />
+                <DownloadQueue
+                  items={downloadQueue}
+                  positionClassName="relative w-full"
+                  onClearFinished={clearDownloads}
+                  onCancelAll={cancelDownloads}
+                  onCancelItem={cancelDownloadItem}
+                  onRetryItem={retryDownloadItem}
+                />
+              </>
+            ) : (
+              <div className="flex flex-col items-center justify-center h-[60vh] space-y-3 text-center px-6">
+                <div className="p-4 rounded-full bg-telegram-primary/10 text-telegram-primary border border-telegram-primary/20">
+                  <Download className="w-8 h-8 animate-bounce" />
+                </div>
+                <h3 className="text-base font-bold">Transfers Queue</h3>
+                <p className="text-xs text-telegram-subtext max-w-xs leading-relaxed">
+                  Downloads and uploads are safely queued and managed in the background.
+                </p>
+              </div>
+            )}
           </div>
         )}
 
@@ -936,6 +968,28 @@ export default function MobileDashboard({ onLogout }: { onLogout?: () => void })
 
       {/* Floating Bottom Nav Bar */}
       <BottomNavBar activeTab={activeTab} setActiveTab={setActiveTab} isAndroid={isAndroid} />
+
+      {/* Active transfers — floating glance widget, hidden on the Transfers tab (shown inline there instead) */}
+      {activeTab !== 'downloads' && (uploadQueue.length > 0 || downloadQueue.length > 0) && (
+        <div className={`fixed left-4 right-4 z-[100] flex flex-col gap-2 max-h-[60vh] overflow-y-auto ${isAndroid ? 'bottom-40' : 'bottom-28'}`}>
+          <UploadQueue
+            items={uploadQueue}
+            positionClassName="relative w-full"
+            onClearFinished={() => setUploadQueue(q => q.filter(i => i.status !== 'success' && i.status !== 'error' && i.status !== 'cancelled'))}
+            onCancelAll={cancelUploads}
+            onCancelItem={cancelUploadItem}
+            onRetryItem={retryUploadItem}
+          />
+          <DownloadQueue
+            items={downloadQueue}
+            positionClassName="relative w-full"
+            onClearFinished={clearDownloads}
+            onCancelAll={cancelDownloads}
+            onCancelItem={cancelDownloadItem}
+            onRetryItem={retryDownloadItem}
+          />
+        </div>
+      )}
 
 
       {/* Previews Overlays (Media, PDF & Images) */}

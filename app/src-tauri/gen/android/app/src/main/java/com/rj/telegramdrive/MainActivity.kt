@@ -113,7 +113,7 @@ class MainActivity : TauriActivity() {
             }
         }
 
-        @JvmStatic
+       @JvmStatic
         fun saveFileToPublicDownloads(sourcePath: String, fileName: String, mimeType: String): Boolean {
             return try {
                 val activity = instance?.get() ?: return false
@@ -127,15 +127,25 @@ class MainActivity : TauriActivity() {
                         put(android.provider.MediaStore.Downloads.IS_PENDING, 1)
                     }
                     val resolver = activity.contentResolver
-                    val uri = resolver.insert(android.provider.MediaStore.Downloads.EXTERNAL_CONTENT_URI, contentValues)
-                    uri?.let {
-                        resolver.openOutputStream(it)?.use { output ->
-                            sourceFile.inputStream().use { input -> input.copyTo(output) }
-                        }
-                        contentValues.clear()
-                        contentValues.put(android.provider.MediaStore.Downloads.IS_PENDING, 0)
-                        resolver.update(it, contentValues, null, null)
+                    val uri = resolver.insert(
+                        android.provider.MediaStore.Downloads.EXTERNAL_CONTENT_URI,
+                        contentValues
+                    ) ?: run {
+                        Log.e("MainActivity", "saveFileToPublicDownloads: MediaStore insert returned null for $fileName")
+                        return false  // ← silent failure fix
                     }
+
+                    resolver.openOutputStream(uri)?.use { output ->
+                        sourceFile.inputStream().use { input -> input.copyTo(output) }
+                    } ?: run {
+                        Log.e("MainActivity", "saveFileToPublicDownloads: openOutputStream returned null for $fileName")
+                        resolver.delete(uri, null, null)
+                        return false  // ← openOutputStream null fix
+                    }
+
+                    contentValues.clear()
+                    contentValues.put(android.provider.MediaStore.Downloads.IS_PENDING, 0)
+                    resolver.update(uri, contentValues, null, null)
                 } else {
                     val downloadsDir = android.os.Environment.getExternalStoragePublicDirectory(
                         android.os.Environment.DIRECTORY_DOWNLOADS

@@ -41,4 +41,14 @@ local.properties
 /app/src-tauri/gen/android/buildSrc/build/
 /app/src-tauri/gen/android/buildSrc/.gradle/
 
+# NDK/CMake intermediate build cache (can be large, regenerated on every build)
+**/.cxx/
+**/*.iml
+
+# Misc dev/editor leftovers
+*~
+*.tsbuildinfo
+.env.local
+.env.*.local
+
 tauri-signing-key.key.pub

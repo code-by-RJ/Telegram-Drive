@@ -15,16 +15,18 @@ interface DownloadQueueProps {
     onCancelAll: () => void;
     onCancelItem: (id: string) => void;
     onRetryItem: (id: string) => void;
+    /** Override the default fixed positioning (e.g. to sit above a mobile bottom nav bar) */
+    positionClassName?: string;
 }
 
-export function DownloadQueue({ items, onClearFinished, onCancelAll, onCancelItem, onRetryItem }: DownloadQueueProps) {
+export function DownloadQueue({ items, onClearFinished, onCancelAll, onCancelItem, onRetryItem, positionClassName }: DownloadQueueProps) {
     if (items.length === 0) return null;
 
     const activeCount = items.filter(i => i.status === 'pending' || i.status === 'downloading').length;
     const completedCount = items.filter(i => i.status === 'success').length;
 
     return (
-        <div className="fixed bottom-4 right-4 w-80 bg-telegram-surface border border-telegram-border rounded-xl shadow-2xl overflow-hidden z-[100]">
+        <div className={`${positionClassName ?? "fixed bottom-4 right-4 w-80"} bg-telegram-surface border border-telegram-border rounded-xl shadow-2xl overflow-hidden z-[100]`}>
             <div className="p-3 border-b border-telegram-border bg-telegram-hover flex justify-between items-center">
                 <div className="flex items-center gap-2">
                     <Download className="w-4 h-4 text-telegram-secondary" />
@@ -71,9 +73,14 @@ export function DownloadQueue({ items, onClearFinished, onCancelAll, onCancelIte
                                 </button>
                             )}
                             {(item.status === 'error' || item.status === 'cancelled') && (
-                                <button onClick={() => onRetryItem(item.id)} className="text-gray-400 hover:text-blue-400 transition-colors flex-shrink-0" title="Retry">
-                                    <RotateCcw className="w-3.5 h-3.5" />
-                                </button>
+                                <div className="flex items-center gap-1.5 flex-shrink-0">
+                                    <button onClick={() => onRetryItem(item.id)} className="text-gray-400 hover:text-blue-400 transition-colors" title="Retry">
+                                        <RotateCcw className="w-3.5 h-3.5" />
+                                    </button>
+                                    <button onClick={() => onCancelItem(item.id)} className="text-gray-400 hover:text-red-400 transition-colors" title="Remove">
+                                        <X className="w-3.5 h-3.5" />
+                                    </button>
+                                </div>
                             )}
                         </div>
                         {item.status === 'downloading' && (

@@ -1165,16 +1165,54 @@ pub async fn cmd_download_file(
             .unwrap_or("")
             .to_lowercase();
             
-        let mime_type = match lower_ext.as_str() {
-            "jpg" | "jpeg" => "image/jpeg",
-            "png" => "image/png",
-            "pdf" => "application/pdf",
-            "mp4" => "video/mp4",
-            "mp3" => "audio/mpeg",
-            "txt" => "text/plain",
-            "zip" => "application/zip",
-            "bin" => "application/octet-stream",
-            _ => "application/octet-stream",
+           let mime_type = match lower_ext.as_str() {
+            // Images
+            "jpg" | "jpeg"  => "image/jpeg",
+            "png"           => "image/png",
+            "gif"           => "image/gif",
+            "webp"          => "image/webp",
+            "svg"           => "image/svg+xml",
+            "bmp"           => "image/bmp",
+            "ico"           => "image/x-icon",
+            // Video
+            "mp4"           => "video/mp4",
+            "mkv"           => "video/x-matroska",
+            "avi"           => "video/x-msvideo",
+            "mov"           => "video/quicktime",
+            "webm"          => "video/webm",
+            "3gp"           => "video/3gpp",
+            // Audio
+            "mp3"           => "audio/mpeg",
+            "m4a"           => "audio/mp4",
+            "wav"           => "audio/wav",
+            "ogg"           => "audio/ogg",
+            "flac"          => "audio/flac",
+            "aac"           => "audio/aac",
+            // Documents
+            "pdf"           => "application/pdf",
+            "txt"           => "text/plain",
+            "html" | "htm"  => "text/html",
+            "csv"           => "text/csv",
+            "json"          => "application/json",
+            "xml"           => "application/xml",
+            // Office (OOXML)
+            "docx"          => "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            "xlsx"          => "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            "pptx"          => "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+            // Office (legacy)
+            "doc"           => "application/msword",
+            "xls"           => "application/vnd.ms-excel",
+            "ppt"           => "application/vnd.ms-powerpoint",
+            // Archives
+            "zip"           => "application/zip",
+            "rar"           => "application/x-rar-compressed",
+            "7z"            => "application/x-7z-compressed",
+            "tar"           => "application/x-tar",
+            "gz"            => "application/gzip",
+            // Android / misc
+            "apk"           => "application/vnd.android.package-archive",
+            "bin"           => "application/octet-stream",
+            _               => "application/octet-stream",
         };
 
         log::info!("JNI: Copying {} from cache {} to public downloads", file_name, actual_save_path);

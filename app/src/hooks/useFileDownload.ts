@@ -77,6 +77,11 @@ export function useFileDownload(store: Store | null) {
         activeCountRef.current++;
         setDownloadQueue(q => q.map(i => i.id === item.id ? { ...i, status: 'downloading', progress: 0 } : i));
 
+        // Android: start foreground service so download survives app minimize
+        if (isAndroidPlatform && activeCountRef.current === 1) {
+            await invoke('cmd_start_foreground_service').catch(() => {});
+        }
+
         try {
             // On Android, skip the save dialog entirely — the Rust backend handles saving
             // to public Downloads via MediaStore. Passing the original filename ensures the
@@ -95,7 +100,7 @@ export function useFileDownload(store: Store | null) {
                     );
                     if (!savePath) {
                         setDownloadQueue(q => q.filter(i => i.id !== item.id));
-                        activeCountRef.current--;
+                        // Note: finally block handles activeCountRef.current-- automatically
                         return;
                     }
                 }
@@ -130,6 +135,10 @@ export function useFileDownload(store: Store | null) {
             }
         } finally {
             activeCountRef.current--;
+            // Android: stop foreground service when no more active downloads
+            if (isAndroidPlatform && activeCountRef.current === 0) {
+                invoke('cmd_stop_foreground_service').catch(() => {});
+            }
         }
     };
 
@@ -222,7 +231,7 @@ export function useFileDownload(store: Store | null) {
                 invoke('cmd_cancel_transfer', { transferId: id }).catch(() => {});
                 return q.map(i => i.id === id ? { ...i, status: 'cancelled' as const } : i);
             }
-            if (item?.status === 'pending') {
+            if (item?.status === 'pending' || item?.status === 'error' || item?.status === 'cancelled') {
                 return q.filter(i => i.id !== id);
             }
             return q;
